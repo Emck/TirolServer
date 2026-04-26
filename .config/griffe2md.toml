@@ -1,0 +1,25 @@
+docstring_style = "sphinx"
+
+docstring_section_style = "table" # ["list", "table"]
+
+search_paths = ["tirolserver"]
+
+filters = [
+  '__init__', # Explicitly include the __init__ method
+  '!^_', # Exclude all members starting with an underscore (private)
+  '!^web_search',
+  '!^fetcher',
+]
+
+annotations_path = "brief" # ["brief", "source", "full"]
+group_by_category = true 
+inherited_members = true 
+show_signature_annotations = true 
+
+extensions = [
+  "griffe_sphinx", # Identification: Parameter Grammar
+  "griffe_inherited_docstrings", # Inherit the comments of the parent class
+  "griffe_runtime_objects", # Parse runtime objects
+]
+
+[docstring_options] # Must be empty

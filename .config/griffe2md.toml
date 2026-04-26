@@ -7,8 +7,6 @@ search_paths = ["tirolserver"]
 filters = [
   '__init__', # Explicitly include the __init__ method
   '!^_', # Exclude all members starting with an underscore (private)
-  '!^web_search',
-  '!^fetcher',
 ]
 
 annotations_path = "brief" # ["brief", "source", "full"]

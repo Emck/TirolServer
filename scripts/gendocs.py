@@ -5,6 +5,7 @@ from pathlib import Path
 # Modules to export
 MODULES = [
 	"tirolserver.commons",
+	"tirolserver.core",
 	"tirolserver.dirtyapp",
 	"tirolserver.routers",
 	"tirolserver.config",

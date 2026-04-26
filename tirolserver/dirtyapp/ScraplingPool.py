@@ -9,6 +9,7 @@ from scrapling.fetchers import AsyncStealthySession
 
 import tirolserver.config as config
 from tirolserver.commons import FetchRequest, logger
+from tirolserver.core.fetcher import FetcherSession
 
 
 class PoolObject:
@@ -64,38 +65,14 @@ class PoolObject:
 	"""
 
 	async def fetch(self, request: FetchRequest) -> dict:
-		"""Use AsyncStealthySession to fetch web pages
+		"""Fetch web pages
 		:param request: request parameters
 		:return: response data
 		"""
-		if request.url is None or not request.url.startswith(("http://", "https://")):
-			return {"status": 500, "error": "url is invalid"}
-		if self.stealthy is None:
-			return {"status": 500, "error": "pool object is none"}
-
-		try:
-			self.times += 1  # update usage times
-			response = await self.stealthy.fetch(url=request.url, timeout=request.timeout * 1000)
-			if response.status != 200:
-				logger.debug(f"[PoolObj] call fetch error status={response.status}")
-				return {"status": response.status, "error": response.reason}
-
-			logger.debug(f"[PoolObj] call fetch status={response.status}")
-			return {
-				"status": response.status,
-				"title": response.css("title::text").get(),
-				"body": response.body.decode("utf-8", errors="ignore"),
-			}
-		except RuntimeError as e:  # catch scrapling fetch RuntimeError
-			return {"status": 500, "error": "fetch runtime error: " + str(e)}
-		except Exception as e:
-			if "TimeoutError" in str(type(e)):
-				return {"status": 500, "error": "fetch timeout: " + str(e)}
-			elif "net::ERR_NAME_NOT_RESOLVED" in str(e):
-				return {"status": 500, "error": "fetch error: target host name not resolved"}
-			elif "net::ERR_CONNECTION_REFUSED" in str(e):
-				return {"status": 500, "error": "fetch error: target server refused connection"}
-			return {"status": 500, "error": "fetch exception: " + str(type(e)) + " " + str(e)}
+		self.times += 1  # update usage times
+		response = await FetcherSession(self.stealthy, request)
+		logger.debug(f"[PoolObj] call fetch status={response['status']}")
+		return response
 
 
 class PoolObjectManager(BaseConnectionManager[str, PoolObject]):

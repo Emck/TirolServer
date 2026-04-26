@@ -1,0 +1,32 @@
+exclude = [
+  ".git",
+  ".venv",
+  ".ruff_cache",
+  ".github",
+  ".vscode",
+  "__pycache__",
+  "__pypackages__",
+  "docs",
+  "build",
+  "dist",
+  "tests",
+]
+
+# Allow lines to be as long as 120.
+line-length = 200
+
+# The number of indent characters
+indent-width = 4
+
+# Assume Python 3.12
+target-version = "py312"
+
+[lint]
+select = ["E", "F", "W"]
+ignore = ["E501", "F401", "W191"]
+
+[format]
+# Like Black, use double quotes for strings.
+quote-style = "double"
+# black indent with spaces
+indent-style = "tab"

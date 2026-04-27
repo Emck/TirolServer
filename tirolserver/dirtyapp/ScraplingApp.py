@@ -8,7 +8,8 @@ from generic_connection_pool.asyncio import ConnectionPool
 from gunicorn.dirty import DirtyApp, DirtyTimeoutError
 
 import tirolserver.config as config
-from tirolserver.commons import FetchRequest, logger
+from tirolserver.commons import logger
+from tirolserver.commons.type import FetchRequest
 from tirolserver.dirtyapp.ScraplingPool import PoolObject, PoolObjectManager
 
 

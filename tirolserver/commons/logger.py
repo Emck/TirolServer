@@ -2,8 +2,6 @@
 
 import logging
 
-from fastapi import Request
-
 
 def disabled_logger():
 	"""disabled the logs of third-party libraries"""
@@ -31,14 +29,3 @@ def enable_pool_logger(level=logging.info) -> logging.Logger:
 		handler = logging.StreamHandler()
 		handler.setFormatter(logging.Formatter("[%(asctime)s] [%(process)d] [%(levelname)s] 🌹 %(message)s", datefmt="%Y-%m-%d %H:%M:%S %z"))
 		pool_logger.addHandler(handler)
-
-
-async def MakeLogText(raw: Request, status, module: str = "Main", error: str = None) -> str:
-	"""make log text
-	:param raw: original request
-	:param status: http status
-	:param module: module name, defaults to "Main"
-	:param error: message string, defaults to None
-	:return: log text
-	"""
-	return f'[{module}] "{raw.method} {raw.url.path}" - {status}' + (f" {error}" if error is not None else "")

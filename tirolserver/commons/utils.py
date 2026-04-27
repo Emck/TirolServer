@@ -3,11 +3,6 @@
 import argparse
 import sys
 
-import html2text
-from fastapi import HTTPException, Request
-
-from tirolserver.commons import MakeLogText, logger
-
 
 async def argsparse(Host: str, Port: int):
 	"""sys args parse.
@@ -35,39 +30,3 @@ async def argsparse(Host: str, Port: int):
 		host, port = args.bind.rsplit(":", 1)
 		args = argparse.Namespace(host=host, port=int(port), run="gunicorn")
 	return args
-
-
-async def makeHTTPException(raw: Request, status: int, error: str) -> HTTPException:
-	"""make HTTPException class based on the parameters.
-	:param raw: original request
-	:param status: http status
-	:param error: exception message string
-	:return: HTTPException
-	"""
-	logger.info(await MakeLogText(raw=raw, status=status, error=error))
-	return HTTPException(status_code=status, detail=error)
-
-
-async def CleanHtmlData(data: str) -> str:
-	"""Clean the html page content
-	:param data: page content
-	:return: cleaned page content
-	"""
-	return await Body2Text(data)
-
-
-async def Body2Text(data: str) -> str:
-	"""Convert HTTP responses to plain text (Markdown style)
-	:param data: _description_
-	:raises ValueError: _description_
-	:return: _description_
-	"""
-	if data is None:
-		raise ValueError("data is None")
-
-	h = html2text.HTML2Text()
-	h.ignore_links = False  # keep links
-	h.ignore_images = True  # block images (models usually do not require image links)
-	h.ignore_emphasis = False  # keep bold/italic
-	h.body_width = 0  # o = no line breaks
-	return h.handle(data)

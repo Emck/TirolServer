@@ -7,12 +7,14 @@ search_paths = ["tirolserver"]
 filters = [
   '__init__', # Explicitly include the __init__ method
   '!^_', # Exclude all members starting with an underscore (private)
+  '!cleaner',
+  '!fetcher',
 ]
 
 annotations_path = "brief" # ["brief", "source", "full"]
-group_by_category = true 
-inherited_members = true 
-show_signature_annotations = true 
+group_by_category = true
+inherited_members = true
+show_signature_annotations = true
 
 extensions = [
   "griffe_sphinx", # Identification: Parameter Grammar

@@ -8,8 +8,9 @@ from generic_connection_pool.asyncio import BaseConnectionManager
 from scrapling.fetchers import AsyncStealthySession
 
 import tirolserver.config as config
-from tirolserver.commons import FetchRequest, logger
-from tirolserver.core.fetcher import FetcherSession
+from tirolserver.commons import logger
+from tirolserver.commons.type import FetchRequest
+from tirolserver.core import FetcherSession
 
 
 class PoolObject:

@@ -1,16 +1,32 @@
+import os
 import sys
+from contextlib import asynccontextmanager
 
 import gunicorn.app.wsgiapp
 from fastapi import FastAPI, HTTPException, Request
 from fastapi.responses import JSONResponse
 
-from tirolserver.commons import logger
+from tirolserver.core import DataBase
 from tirolserver.routers import router_api
+from tirolserver.utils import logger
 
-# create app
-app: FastAPI = FastAPI(title="Tirol Server")
-"""FastAPI instance"""
 
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+	"""lifespan of fastapi.
+	:param app: fastapi instance
+	"""
+
+	logger.info(f"🔔 Worker {os.getpid()} lifespan Startup")
+	app.state.cleandb = DataBase()
+
+	yield
+	logger.info(f"🔔 Worker {os.getpid()} lifespan Shutdown")
+	app.state.cleandb.close()
+
+
+#: fastapi instance
+app: FastAPI = FastAPI(title="Tirol Server", lifespan=lifespan)
 
 # include routes
 app.include_router(router_api)
@@ -20,7 +36,7 @@ app.include_router(router_api)
 @app.exception_handler(HTTPException)
 @app.exception_handler(Exception)
 async def _exception_handler(request: Request, exc: Exception) -> JSONResponse:
-	"""exception handler by fastapi.
+	"""exception handler of fastapi.
 	:param request: original request
 	:param exc: Exception instance
 	:return: json format response
@@ -34,9 +50,6 @@ async def _exception_handler(request: Request, exc: Exception) -> JSONResponse:
 	errstr = f"unknow exception {str(type(exc))} {str(exc)}"
 	logger.info(f"{info} 500 {errstr}")
 	return JSONResponse(status_code=500, content={"detail": errstr})
-
-
-"""main function"""
 
 
 def main():

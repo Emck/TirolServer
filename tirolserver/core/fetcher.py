@@ -2,20 +2,23 @@
 
 from scrapling.fetchers import AsyncStealthySession
 
-from tirolserver.commons.type import FetchRequest
+from tirolserver.routers.api.web_fetch import WebFetchRequest
 
 
-async def FetcherSession(stealthy: AsyncStealthySession, request: FetchRequest) -> dict:
+async def FetcherSession(stealthy: AsyncStealthySession, req: dict) -> dict:
 	"""Use AsyncStealthySession to fetch web pages
 	:param request: request parameters
 	:return: response data, {"status": int, "title": str=None, "body": str=None, "detail": str=None}
 	"""
-	if request.url is None or not request.url.startswith(("http://", "https://")):
-		return {"status": 500, "detail": "url is invalid"}
-	if stealthy is None:
-		return {"status": 500, "detail": "pool object is none"}
 
 	try:
+		request = WebFetchRequest(**req)
+
+		if request.url is None or not request.url.startswith(("http://", "https://")):
+			return {"status": 500, "detail": "url is invalid"}
+		if stealthy is None:
+			return {"status": 500, "detail": "pool object is none"}
+
 		response = await stealthy.fetch(url=request.url, timeout=request.timeout * 1000)
 		if response.status != 200:
 			return {"status": response.status, "detail": response.reason}

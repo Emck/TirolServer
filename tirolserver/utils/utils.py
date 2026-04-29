@@ -1,7 +1,24 @@
-"""Utils module"""
+"""utils on router"""
 
 import argparse
+import logging
 import sys
+from pathlib import Path
+
+from fastapi import Request
+
+_routerPath: Path = Path(__file__).parent.joinpath("../routers").resolve()
+
+
+def router_path(file: str, obj: classmethod) -> str:
+	try:
+		return (str(Path(file).parent) + "/").replace(str(_routerPath), "") + obj.__name__
+	except Exception:
+		return obj.__name__
+
+
+def get_clean_db(request: Request):
+	return request.app.state.cleandb
 
 
 async def argsparse(Host: str, Port: int):
@@ -30,3 +47,16 @@ async def argsparse(Host: str, Port: int):
 		host, port = args.bind.rsplit(":", 1)
 		args = argparse.Namespace(host=host, port=int(port), run="gunicorn")
 	return args
+
+
+def enable_pool_logger(level=logging.info) -> logging.Logger:
+	"""enable pool logger
+	:param level: logging level, defaults to logging.info
+	:return: logger
+	"""
+	pool_logger = logging.getLogger("generic_connection_pool")
+	pool_logger.setLevel(logging.DEBUG)
+	if not pool_logger.handlers:
+		handler = logging.StreamHandler()
+		handler.setFormatter(logging.Formatter("[%(asctime)s] [%(process)d] [%(levelname)s] 🌹 %(message)s", datefmt="%Y-%m-%d %H:%M:%S %z"))
+		pool_logger.addHandler(handler)

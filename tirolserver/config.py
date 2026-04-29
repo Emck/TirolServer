@@ -10,7 +10,7 @@ proc_name: str = "TirolWebServer"
 workers: int = 2
 
 #: woker class
-worker_class: str = "uvicorn.workers.UvicornWorker"
+worker_class: str = "asgi"  # or "uvicorn.workers.UvicornWorker"
 
 #: number of threads by worker processes, need add set worker_class = 'gthread'
 # threads: int = 4
@@ -106,8 +106,12 @@ if dirty_timeout < 10:
 # 	# print(f'Dirty apps: {server.cfg.dirty_apps}')
 
 
+# def post_worker_init(worker):
+# 	worker.log.info(f"🔔 Worker {worker.pid} initialized")
+
+
 # def worker_exit(server, worker):
-# 	pass  # Worker {worker.pid} exiting
+# 	worker.log.info(f"🔔 Worker {worker.pid} exiting")
 
 
 # def on_exit(server):

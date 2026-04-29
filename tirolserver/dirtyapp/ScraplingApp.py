@@ -8,9 +8,8 @@ from generic_connection_pool.asyncio import ConnectionPool
 from gunicorn.dirty import DirtyApp, DirtyTimeoutError
 
 import tirolserver.config as config
-from tirolserver.commons import logger
-from tirolserver.commons.type import FetchRequest
 from tirolserver.dirtyapp.ScraplingPool import PoolObject, PoolObjectManager
+from tirolserver.utils import logger
 
 
 class App(DirtyApp):
@@ -31,7 +30,7 @@ class App(DirtyApp):
 
 	def init(self):
 		"""Init async event Loop and init pool."""
-		# commons.enable_pool_logger()  # debug generic_connection_pool
+		# enable_pool_logger()  # debug generic_connection_pool
 
 		# create event loop
 		self.loop = asyncio.new_event_loop()
@@ -91,20 +90,20 @@ class App(DirtyApp):
 	Dirty Function
 	"""
 
-	def fetch(self, request: dict) -> dict:
+	def fetch(self, req: dict) -> dict:
 		"""web fetch
 		:param request: request parameters
 		:return: response data
 		"""
-		return asyncio.run_coroutine_threadsafe(self._fetch_async(FetchRequest(**request)), self.loop).result()  # run self._fetch_async() in thread
+		return asyncio.run_coroutine_threadsafe(self._fetch_async(req), self.loop).result()  # run self._fetch_async() in thread
 
-	async def _fetch_async(self, data: FetchRequest) -> dict:
+	async def _fetch_async(self, req: dict) -> dict:
 		try:
 			logger.debug(f"[Dirty-{os.getpid()}] current pool size={self.pool.get_size()}")
 			async with asyncio.timeout(config.dirty_timeout - 5):  # timeout by dirty_timeout -5
 				async with self.pool.connection(endpoint="dirty", timeout=config.Pool_acquire_timeout) as pool_obj:
 					logger.debug(f"[Dirty-{os.getpid()}] current instance {hex(id(pool_obj))}")
-					return await pool_obj.fetch(data)  # call pool object function
+					return await pool_obj.fetch(req)  # call pool object function
 
 		except TimeoutError:
 			return {"status": 500, "error": "dirty operation times out"}

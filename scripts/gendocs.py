@@ -4,11 +4,11 @@ from pathlib import Path
 
 # Modules to export
 MODULES = [
-	"tirolserver.commons",
+	"tirolserver.config",
 	"tirolserver.core",
 	"tirolserver.dirtyapp",
 	"tirolserver.routers",
-	"tirolserver.config",
+	"tirolserver.utils",
 	"tirolserver.server",
 ]
 OUTPUT_DIR = Path("docs/content")

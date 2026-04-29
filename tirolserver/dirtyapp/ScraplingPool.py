@@ -8,9 +8,8 @@ from generic_connection_pool.asyncio import BaseConnectionManager
 from scrapling.fetchers import AsyncStealthySession
 
 import tirolserver.config as config
-from tirolserver.commons import logger
-from tirolserver.commons.type import FetchRequest
 from tirolserver.core import FetcherSession
+from tirolserver.utils import logger
 
 
 class PoolObject:
@@ -65,13 +64,13 @@ class PoolObject:
 	Pool Object Function
 	"""
 
-	async def fetch(self, request: FetchRequest) -> dict:
+	async def fetch(self, req: dict) -> dict:
 		"""Fetch web pages
-		:param request: request parameters
+		:param req: request parameters
 		:return: response data
 		"""
 		self.times += 1  # update usage times
-		response = await FetcherSession(self.stealthy, request)
+		response = await FetcherSession(self.stealthy, req)
 		logger.debug(f"[PoolObj] call fetch status={response['status']}")
 		return response
 

@@ -1,17 +1,39 @@
 """web_fetch router"""
 
-from dataclasses import asdict
+from dataclasses import asdict, dataclass
 
 from fastapi import HTTPException, Request
 from gunicorn.dirty import get_dirty_client_async
 
 import tirolserver.config as config
-from tirolserver.commons import logger
-from tirolserver.commons.type import FetchRequest, FetchResponse
 from tirolserver.core import CleanerContent
+from tirolserver.utils import logger
 
 
-async def web_fetch(request: FetchRequest, raw: Request) -> FetchResponse:
+@dataclass
+class WebFetchRequest:
+	"""web fetch request parameters
+	:param url: The target URL to retrieve data from.
+	:param timeout: The maximum time in seconds to wait for a response.
+	"""
+
+	url: str | None = None
+	timeout: int = 30
+	clean: bool = True
+
+
+@dataclass
+class WebFetchResponse:
+	"""web fetch response parameters
+	:param title: page title
+	:param content: page content
+	"""
+
+	title: str | None = None
+	content: str | None = None
+
+
+async def web_fetch(request: WebFetchRequest, raw: Request) -> WebFetchResponse:
 	"""web page fetch interface, return to the cleaned web page content.
 	:param request: request parameters (include url, timeout, ...)
 	:param raw: original request
@@ -28,7 +50,7 @@ async def web_fetch(request: FetchRequest, raw: Request) -> FetchResponse:
 		client = await get_dirty_client_async()
 		result = await client.execute_async(config.dirty_apps[0], "fetch", asdict(request))
 		if result["status"] == 200:
-			response = FetchResponse(title=result["title"], content=result["body"])
+			response = WebFetchResponse(title=result["title"], content=result["body"])
 			if request.clean:
 				mclean = CleanerContent()
 				response.content = mclean.clean(url=request.url, title=response.title, html=response.content)  # clean data

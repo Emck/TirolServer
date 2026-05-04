@@ -60,6 +60,13 @@ accesslog: str = "-"
 #: - Example: './logs/error.log'
 errorlo: str = "-"
 
+# -------------------------------
+# custom config
+#: max content size
+content_max_size = 5 * 1024 * 1024  # max size 5Mb
+
+#: server header
+headerServer = "tirol"
 
 # config pool
 #: maximum number of endpoint connections

@@ -6,6 +6,7 @@ import gunicorn.app.wsgiapp
 from fastapi import FastAPI, HTTPException, Request
 from fastapi.responses import JSONResponse
 
+import tirolserver.config as config
 from tirolserver.core import DataBase
 from tirolserver.routers import router_api
 from tirolserver.utils import logger
@@ -50,6 +51,18 @@ async def _exception_handler(request: Request, exc: Exception) -> JSONResponse:
 	errstr = f"unknow exception {str(type(exc))} {str(exc)}"
 	logger.info(f"{info} 500 {errstr}")
 	return JSONResponse(status_code=500, content={"detail": errstr})
+
+
+@app.middleware("http")
+async def custom_http_header(request: Request, call_next):
+	if request.method in ("POST"):
+		content_length = request.headers.get("Content-Length")
+		if content_length and int(content_length) > config.content_max_size:
+			return JSONResponse(status_code=413, content={"detail": f"content length too large. Limit is {config.content_max_size} bytes."})
+
+	response = await call_next(request)
+	response.headers["Server"] = config.headerServer  # change server header
+	return response
 
 
 def main():

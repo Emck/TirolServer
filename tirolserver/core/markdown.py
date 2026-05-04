@@ -1,5 +1,5 @@
 import re
-from concurrent.futures import ProcessPoolExecutor
+from concurrent.futures import ProcessPoolExecutor, as_completed
 
 from selectolax.parser import HTMLParser
 
@@ -28,12 +28,12 @@ class HtmlToMarkdown:
 		}
 		with ProcessPoolExecutor(max_workers=len(engines)) as executor:
 			future_to_engine = {executor.submit(func, html, mtitle): name for name, func in engines.items()}
-			for future in future_to_engine:
+			for future in as_completed(future_to_engine):
 				try:
 					name, content = future.result(timeout=10)
 					results.append({"name": name, "content": content, "len": len(content)})
 				except Exception:
-					results.append({"name": name, "content": "", "len": 0})
+					results.append({"name": future_to_engine[future], "content": "", "len": 0})
 
 		# sort by len in ascending order
 		results.sort(key=lambda x: x.get("len", 0))

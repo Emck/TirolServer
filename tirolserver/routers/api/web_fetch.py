@@ -6,7 +6,7 @@ from fastapi import HTTPException, Request
 from gunicorn.dirty import get_dirty_client_async
 
 import tirolserver.config as config
-from tirolserver.core import CleanerContent
+from tirolserver.core.markdown import HtmlToMarkdown
 from tirolserver.utils import logger
 
 
@@ -52,9 +52,8 @@ async def web_fetch(request: WebFetchRequest, raw: Request) -> WebFetchResponse:
 		if result["status"] == 200:
 			response = WebFetchResponse(title=result["title"], content=result["body"])
 			if request.clean:
-				mclean = CleanerContent()
-				response.content = mclean.clean(url=request.url, title=response.title, html=response.content)  # clean data
-
+				markdown = HtmlToMarkdown()
+				response.content, info = markdown.toMarkdown(html=response.content, title=response.title, url=request.url)  # transform to markdown
 			logger.info(f'[Main] "{raw.method} {raw.url.path}" - 200 length="{len(result["body"])}->{len(response.content)}"')
 			return response
 

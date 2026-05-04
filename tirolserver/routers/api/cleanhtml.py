@@ -5,22 +5,22 @@ from dataclasses import dataclass
 
 from fastapi import HTTPException, Request
 
-from tirolserver.core import CleanerContent
+from tirolserver.core.markdown import HtmlToMarkdown
 from tirolserver.utils import logger
 
 
 @dataclass
 class CleanHtmlRequest:
 	"""request parameters
-	:param url: The target URL to retrieve data from.
 	:param html: The target URL html content.
 	:param title: The target URL html title.
+	:param url: The target URL to retrieve data from.
 	:param timeout: The maximum time in seconds to wait for cleanHtml request.
 	"""
 
-	url: str | None = None
 	html: str = ""
 	title: str = ""
+	url: str = "https://demo.com"  # default any url
 	timeout: int = 10
 
 
@@ -43,16 +43,16 @@ async def cleanhtml(request: CleanHtmlRequest, raw: Request) -> CleanHtmlRespons
 	"""
 	try:
 		# verify parameter
-		if request.url is None or not request.url.startswith(("http://", "https://")):
+		if not request.url or not request.url.startswith(("http://", "https://")):
 			raise HTTPException(status_code=500, detail="url is invalid")
 		elif len(request.html) <= 4:
-			raise HTTPException(status_code=500, detail="html is short")
+			raise HTTPException(status_code=500, detail="html is empty or too short")
 
 		async with asyncio.timeout(request.timeout):
-			mclean = CleanerContent()
-			html = mclean.clean(url=request.url, title=request.title, html=request.html)  # clean data
-			logger.info(f'[Main] "{raw.method} {raw.url.path}" - 200 length="{len(request.html)}->{len(html)}"')
-			return CleanHtmlResponse(title=request.title, content=html)
+			markdown = HtmlToMarkdown()
+			mdtext, info = markdown.toMarkdown(html=request.html, title=request.title, url=request.url)  # transform to markdown
+			logger.info(f'[Main] "{raw.method} {raw.url.path}" - 200 length="original: {len(request.html)} -> cleaned: {len(mdtext)}"')
+			return CleanHtmlResponse(title=request.title if request.title else info["title"], content=mdtext)
 
 	except HTTPException as e:
 		raise e

@@ -54,7 +54,8 @@ async def web_fetch(request: WebFetchRequest, raw: Request) -> WebFetchResponse:
 			if request.clean:
 				markdown = HtmlToMarkdown()
 				response.content, info = markdown.toMarkdown(html=response.content, title=response.title, url=request.url)  # transform to markdown
-			logger.info(f'[Main] "{raw.method} {raw.url.path}" - 200 length="{len(result["body"])}->{len(response.content)}"')
+				# markdown.printresult(info) # print info
+			logger.info(f'[Main] "{raw.method} {raw.url.path}" - 200 length="original: {len(result["body"])} -> cleaned: {len(response.content)}"')
 
 			# import aiofiles
 			# async with aiofiles.open("output.html", "w", encoding="utf-8") as f:

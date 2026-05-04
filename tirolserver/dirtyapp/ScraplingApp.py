@@ -106,10 +106,10 @@ class App(DirtyApp):
 					return await pool_obj.fetch(req)  # call pool object function
 
 		except TimeoutError:
-			return {"status": 500, "error": "dirty operation times out"}
+			return {"status": 500, "detail": "dirty operation times out"}
 		except AttributeError:
-			return {"status": 500, "error": "dirty operation exception object has no attribute"}
+			return {"status": 500, "detail": "dirty operation exception object has no attribute"}
 		except DirtyTimeoutError:
-			return {"status": 500, "error": "dirty operation DirtyTimeoutError"}
+			return {"status": 500, "detail": "dirty operation DirtyTimeoutError"}
 		except Exception as e:
-			return {"status": 500, "error": "dirty operation exception " + str(type(e)) + " " + str(e)}
+			return {"status": 500, "detail": "dirty operation exception " + str(type(e)) + " " + str(e)}

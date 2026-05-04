@@ -3,6 +3,7 @@ from concurrent.futures import ProcessPoolExecutor, as_completed
 
 from selectolax.parser import HTMLParser
 
+import tirolserver.config as config
 from tirolserver.core.clean import ReadabilityCleaner, SimpleRemoveCleaner, TrafilaturaCleaner, UnstructuredCleaner
 
 
@@ -30,7 +31,7 @@ class HtmlToMarkdown:
 			future_to_engine = {executor.submit(func, html, mtitle): name for name, func in engines.items()}
 			for future in as_completed(future_to_engine):
 				try:
-					name, content = future.result(timeout=10)
+					name, content = future.result(timeout=config.convert_timeout)
 					results.append({"name": name, "content": content, "len": len(content)})
 				except Exception:
 					results.append({"name": future_to_engine[future], "content": "", "len": 0})

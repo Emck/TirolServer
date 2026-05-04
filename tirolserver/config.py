@@ -39,7 +39,7 @@ dirty_apps: list[str] = ["tirolserver.dirtyapp.ScraplingApp:App"]
 dirty_workers: int = 1
 
 #: dirty timeout, the minimum setting is 10 seconds
-dirty_timeout: int = 20
+dirty_timeout: int = 35
 
 #: The time to wait for the dirty to exit gracefully after receiving the close signal
 dirty_graceful_timeout: int = 10
@@ -62,11 +62,15 @@ errorlo: str = "-"
 
 # -------------------------------
 # custom config
-#: max content size
-content_max_size = 5 * 1024 * 1024  # max size 5Mb
 
 #: server header
 headerServer = "tirol"
+
+#: max content size
+content_max_size = 5 * 1024 * 1024  # max size 5Mb
+
+#: timeout for convert html to markdown
+convert_timeout = 10
 
 # config pool
 #: maximum number of endpoint connections

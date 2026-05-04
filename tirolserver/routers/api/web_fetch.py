@@ -55,12 +55,12 @@ async def web_fetch(request: WebFetchRequest, raw: Request) -> WebFetchResponse:
 				markdown = HtmlToMarkdown()
 				response.content, info = markdown.toMarkdown(html=response.content, title=response.title, url=request.url)  # transform to markdown
 			logger.info(f'[Main] "{raw.method} {raw.url.path}" - 200 length="{len(result["body"])}->{len(response.content)}"')
-			return response
 
 			# import aiofiles
 			# async with aiofiles.open("output.html", "w", encoding="utf-8") as f:
 			# 	logger.debug(f"write {len(result['body'])} characters to output.html")
 			# 	await f.write(result["body"])
+			return response
 		else:
 			raise HTTPException(status_code=result["status"], detail=result["detail"])
 

@@ -1,6 +1,7 @@
 """utils on router"""
 
 import argparse
+import copy
 import logging
 import sys
 from pathlib import Path
@@ -19,6 +20,19 @@ def router_path(file: str, obj: classmethod) -> str:
 
 def get_clean_db(request: Request):
 	return request.app.state.cleandb
+
+
+def merge_dict_deep(target: dict, source: dict):
+	"""recursive merge (source into target)"""
+	for key, value in source.items():
+		if value is None and key in target:
+			del target[key]  # delete parent config
+		elif isinstance(value, dict) and key in target and isinstance(target[key], dict):  # both are dict, call deep_merge merge it
+			merge_dict_deep(target[key], value)
+		elif isinstance(value, list) and key in target and isinstance(target[key], list):
+			target[key] = list(dict.fromkeys(target[key] + value))  # keep order
+		else:
+			target[key] = copy.deepcopy(value)  # child override parent
 
 
 async def argsparse(Host: str, Port: int):

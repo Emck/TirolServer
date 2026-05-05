@@ -7,8 +7,8 @@ from fastapi import FastAPI, HTTPException, Request
 from fastapi.responses import JSONResponse
 
 import tirolserver.config as config
+import tirolserver.routers as routers
 from tirolserver.core import DataBase
-from tirolserver.routers import router_api
 from tirolserver.utils import logger
 
 
@@ -29,8 +29,9 @@ async def lifespan(app: FastAPI):
 #: fastapi instance
 app: FastAPI = FastAPI(title="Tirol Server", lifespan=lifespan)
 
-# include routes
-app.include_router(router_api)
+# auto include routes
+for router in routers.__all__:
+	app.include_router(getattr(routers, router))
 
 
 @app.exception_handler(404)

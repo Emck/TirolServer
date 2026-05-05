@@ -15,6 +15,7 @@ class WebFetchRequest:
 	"""web fetch request parameters
 	:param url: The target URL to retrieve data from.
 	:param timeout: The maximum time in seconds to wait for a response.
+	:param clean: clean the content or not.
 	"""
 
 	url: str | None = None

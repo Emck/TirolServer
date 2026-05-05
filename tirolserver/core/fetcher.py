@@ -2,7 +2,7 @@
 
 from scrapling.fetchers import AsyncStealthySession
 
-from tirolserver.routers.api.web_fetch import WebFetchRequest
+from tirolserver.routers.api.v1.web_fetch import WebFetchRequest
 
 
 async def FetcherSession(stealthy: AsyncStealthySession, req: dict) -> dict:

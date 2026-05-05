@@ -57,14 +57,3 @@ class CleanBase(ABC):
 		:return: markdown string
 		"""
 		pass
-
-	# deprecated
-	# def pre_clean(self, html: str, tags: str = "") -> str:
-	# 	"""pre clean, remove absolute noise"""
-	# 	if len(tags) == 0:
-	# 		return html
-
-	# 	tree = HTMLParser(html)
-	# 	for tag in tree.css(tags):  # remove "script, style, noscript, iframe, svg"
-	# 		tag.decompose()
-	# 	return tree.html

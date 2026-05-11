@@ -18,18 +18,14 @@ class WebFetchRequest:
 	# :param formats: fetch formats to return.
 	# :param onlyMainContent: Whether to extract only the main content or not.
 	# :param timeout: maximum time in seconds to wait for a response.
-	# :param maxAge: maxinum cache size in bytes.
 	# :param proxy: proxy to use for the request. "auto" to use the default proxy.
-	# :param storeInCache: Whether to store the response in cache or not.
 	"""
 
 	url: str
 	formats: list[str] = field(default_factory=lambda: ["markdown"])
 	onlyMainContent: bool = True
 	timeout: int = 60  # default 60 seconds
-	maxAge: int = 172800000  # default 164Mb
 	proxy: str = "auto"
-	storeInCache: bool = False
 
 
 @dataclass

@@ -25,6 +25,7 @@ async def FetcherSession(stealthy: AsyncStealthySession, req: dict) -> dict:
 
 		return {
 			"status": response.status,
+			"url": response.url,
 			"title": response.css("title::text").get(),
 			"body": response.body.decode("utf-8", errors="ignore"),
 		}

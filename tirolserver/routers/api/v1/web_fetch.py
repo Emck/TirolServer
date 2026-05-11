@@ -1,8 +1,9 @@
 """web_fetch router"""
 
-from dataclasses import asdict, dataclass
+from dataclasses import asdict, dataclass, field
+from typing import Optional
 
-from fastapi import HTTPException, Request
+from fastapi import Request
 from gunicorn.dirty import get_dirty_client_async
 
 import tirolserver.config as config
@@ -13,50 +14,99 @@ from tirolserver.utils import logger
 @dataclass
 class WebFetchRequest:
 	"""web fetch request parameters
-	:param url: The target URL to retrieve data from.
-	:param timeout: The maximum time in seconds to wait for a response.
-	:param clean: clean the content or not.
+	# :param url: target URL.
+	# :param formats: fetch formats to return.
+	# :param onlyMainContent: Whether to extract only the main content or not.
+	# :param timeout: maximum time in seconds to wait for a response.
+	# :param maxAge: maxinum cache size in bytes.
+	# :param proxy: proxy to use for the request. "auto" to use the default proxy.
+	# :param storeInCache: Whether to store the response in cache or not.
 	"""
 
-	url: str | None = None
-	timeout: int = 30
-	clean: bool = True
+	url: str
+	formats: list[str] = field(default_factory=lambda: ["markdown"])
+	onlyMainContent: bool = True
+	timeout: int = 60  # default 60 seconds
+	maxAge: int = 172800000  # default 164Mb
+	proxy: str = "auto"
+	storeInCache: bool = False
+
+
+@dataclass
+class WebFetchMetadata:
+	"""web fetch metadata parameters
+	# :param title: page title.
+	# :param description: page description.
+	# :param language: page language.
+	# :param sourceURL: page source URL.
+	# :param statusCode: fetch status code.
+	"""
+
+	title: Optional[str] = None
+	description: Optional[str] = None
+	language: Optional[str] = None
+	sourceURL: Optional[str] = None
+	statusCode: int = 200
+
+
+@dataclass
+class WebFetchData:
+	"""web fetch data parameters
+	# :param content: page content.
+	# :param markdown: page markdown content.
+	# :param metadata: page metadata.
+	"""
+
+	content: Optional[str] = None
+	markdown: Optional[str] = None
+	metadata: WebFetchMetadata = field(default_factory=WebFetchMetadata)
 
 
 @dataclass
 class WebFetchResponse:
 	"""web fetch response parameters
-	:param title: page title
-	:param content: page content
+
+	# :param success: fetch operation successful or not.
+	# :param data: fetch data info.
+	# :param error: error message.
 	"""
 
-	title: str | None = None
-	content: str | None = None
+	success: bool = False
+	data: WebFetchData = field(default_factory=WebFetchData)
+	error: Optional[str] = None
+
+
+def _errorResponse(statusCode: int, message: str) -> WebFetchResponse:
+	return WebFetchResponse(data=WebFetchData(metadata=WebFetchMetadata(statusCode=statusCode)), error=message)
 
 
 async def web_fetch(request: WebFetchRequest, raw: Request) -> WebFetchResponse:
 	"""web page fetch interface, return to the cleaned web page content.
-	:param request: request parameters (include url, timeout, ...)
+	:param request: request parameters (include success, data, error)
 	:param raw: original request
 	:return: response data
 	"""
 	try:
 		# verify parameter
 		if request.url is None:
-			raise HTTPException(status_code=500, detail="url is none")
+			logger.info(f'[Main] "{raw.method} {raw.url.path}" - fetch[500] "url is none"')
+			return _errorResponse(500, "url is none")
 		elif request.timeout > config.Pool_acquire_timeout:
-			raise HTTPException(status_code=500, detail=f"timeout set is too large (system max={config.Pool_acquire_timeout})")
+			logger.info(f'[Main] "{raw.method} {raw.url.path}" - fetch[500] "timeout set is too large"')
+			return _errorResponse(500, f"timeout set is too large (system max={config.Pool_acquire_timeout})")
 
 		# run dirty func
 		client = await get_dirty_client_async()
 		result = await client.execute_async(config.dirty_apps[0], "fetch", asdict(request))
 		if result["status"] == 200:
-			response = WebFetchResponse(title=result["title"], content=result["body"])
-			if request.clean:
+			response = WebFetchResponse(success=True, data=WebFetchData(metadata=WebFetchMetadata(title=result["title"], sourceURL=result["url"])))
+			if "text" in request.formats:
+				response.data.content = result["body"]
+			if "markdown" in request.formats:
 				markdown = HtmlToMarkdown()
-				response.content, info = markdown.toMarkdown(html=response.content, title=response.title, url=request.url)  # transform to markdown
+				response.data.markdown, info = markdown.toMarkdown(html=result["body"], title=result["title"], url=request.url)  # transform to markdown
 				# markdown.printresult(info) # print info
-			logger.info(f'[Main] "{raw.method} {raw.url.path}" - 200 length="original: {len(result["body"])} -> cleaned: {len(response.content)}"')
+			logger.info(f'[Main] "{raw.method} {raw.url.path}" - 200 length="original: {len(result["body"])} -> cleaned: {len(response.data.markdown) if response.data.markdown else -1}"')
 
 			# import aiofiles
 			# async with aiofiles.open("output.html", "w", encoding="utf-8") as f:
@@ -64,9 +114,9 @@ async def web_fetch(request: WebFetchRequest, raw: Request) -> WebFetchResponse:
 			# 	await f.write(result["body"])
 			return response
 		else:
-			raise HTTPException(status_code=result["status"], detail=result["detail"])
+			logger.info(f'[Main] "{raw.method} {raw.url.path}" - fetch[{result["status"]}]')
+			return _errorResponse(result["status"], result["detail"])
 
-	except HTTPException as e:
-		raise e
 	except Exception as e:
-		raise HTTPException(status_code=500, detail=f"unknow exception {str(type(e))} {str(e)}")
+		logger.info(f'[Main] "{raw.method} {raw.url.path}" - fetch[500] "unknow exception"')
+		return _errorResponse(500, f"unknow exception {str(type(e))} {str(e)}")

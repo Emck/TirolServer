@@ -1,7 +1,7 @@
 """Tirol Server"""
 
 #: server bind
-bind: str = "127.0.0.1:38080"
+bind: str = "0.0.0.0:38080"
 
 #: set proc name, need install setproctitle package
 proc_name: str = "TirolWebServer"
@@ -39,7 +39,7 @@ dirty_apps: list[str] = ["tirolserver.dirtyapp.ScraplingApp:App"]
 dirty_workers: int = 1
 
 #: dirty timeout, the minimum setting is 10 seconds
-dirty_timeout: int = 35
+dirty_timeout: int = 65
 
 #: The time to wait for the dirty to exit gracefully after receiving the close signal
 dirty_graceful_timeout: int = 10
